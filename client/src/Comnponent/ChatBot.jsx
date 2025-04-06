@@ -12,7 +12,7 @@ const Chatbot = () => {
   // Request OTP before sending the question
   const requestOTP = async () => {
     try {
-      const res = await axios.post('http://localhost:5000/api/otp/generate');
+      const res = await axios.post('https://intern-dyia.onrender.com/api/otp/generate');
       if (res.data.success) {
         setOtpData(res.data.otp);
         setShowOTP(true);
@@ -31,7 +31,7 @@ const Chatbot = () => {
   const onOTPVerified = async () => {
     setShowOTP(false);
     try {
-      const res = await axios.post('http://localhost:5000/api/chatbot/ask', { question });
+      const res = await axios.post('https://intern-dyia.onrender.com/api/chatbot/ask', { question });
       if (res.data.response) {
         setResponse(res.data.response);
       }

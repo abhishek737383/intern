@@ -8,7 +8,7 @@ const OTPModal = ({ onVerified, onClose, otpData }) => {
 
   const handleVerify = async () => {
     try {
-      const res = await axios.post('http://localhost:5000/api/otp/verify', { otp });
+      const res = await axios.post('https://intern-dyia.onrender.com/api/otp/verify', { otp });
       if (res.data.success) {
         onVerified();
       }

@@ -16,9 +16,23 @@ dotenv.config();
 
 const app = express();
 
-// Apply CORS to Express routes
+// Define allowed origins
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://abhishekintern.netlify.app"
+];
+
+// Apply CORS middleware with dynamic origin checking
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
 
@@ -40,7 +54,7 @@ app.get("/", (req, res) => {
 const httpServer = createServer(app);
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -51,15 +65,12 @@ app.set("io", io);
 
 // WebSocket handlers
 io.on("connection", socket => {
-  // console.log("Client connected:", socket.id);
-
   socket.on("joinUserRoom", userId => {
     socket.join(`user_${userId}`);
-    // console.log(`→ ${socket.id} joined room user_${userId}`);
   });
 
   socket.on("disconnect", () => {
-    // console.log("Client disconnected:", socket.id);
+    // Handle disconnection if needed
   });
 });
 
@@ -76,4 +87,3 @@ mongoose.connect(process.env.MONGODB_URL, {
   );
 })
 .catch(err => console.error("DB connection error:", err.message));
-
