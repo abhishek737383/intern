@@ -80,3 +80,22 @@
     cursor: pointer;
   }
   
+/* new notification toggle button */
+.notification-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 10px;
+  border: 1px solid #7e7e7e;
+  border-radius: 2px;
+  background-color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.notification-toggle:hover:not(:disabled) {
+  background-color: #f5f9fc;
+}
+.notification-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
