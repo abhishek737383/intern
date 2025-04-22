@@ -23,7 +23,13 @@ export const postquestion=(questiondata)=>API.post("/questions/Ask",questiondata
 export const getallquestions=()=>API.get("/questions/get");
 export const deletequestion=(id)=>API.delete(`/questions/delete/${id}`);
 export const votequestion=(id,value)=>API.patch(`/questions/vote/${id}`,{value});
+export const voteanswer = (questionId, answerId, value) =>API.patch(`/answer/vote/${questionId}`, { answerId, value });
 
 
 export const postanswer=(id,noofanswers,answerbody,useranswered,userid)=>API.patch(`/answer/post/${id}`,{noofanswers,answerbody,useranswered,userid});
 export const deleteanswer=(id,answerid,noofanswers)=>API.patch(`/answer/delete/${id}`,{answerid,noofanswers});
+
+// reward APIs
+export const addPoints = (userId, points) => API.patch(`/user/addpoints/${userId}`, { points });
+export const reducePoints = (userId, points) => API.patch(`/user/reducepoints/${userId}`, { points });
+export const transferPoints = (fromUserId, toUserId, points) =>API.post(`/user/transferpoints`, { fromUserId, toUserId, points });

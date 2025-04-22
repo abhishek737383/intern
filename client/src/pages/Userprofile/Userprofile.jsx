@@ -9,30 +9,54 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faBell, faBellSlash } from '@fortawesome/free-solid-svg-icons';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { requestNotificationPermission } from '../../services/NotificationService';
+import { transferPoints } from '../../api'; // reward system API for transferring points
 
-export default function Userprofile({ slidein }) {
+const Userprofile = ({ slidein }) => {
   const { id } = useParams();
   const users = useSelector(state => state.usersreducer);
   const currentuser = useSelector(state => state.currentuserreducer);
   const currentprofile = users.find(u => u._id === id) || {};
 
-  const [notificationsEnabled, setNotificationsEnabled] =
-    useLocalStorage('notificationsEnabled', false);
   const [isEditing, setIsEditing] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useLocalStorage('notificationsEnabled', false);
 
-  useEffect(() => {
-    if (notificationsEnabled && Notification.permission === 'default') {
-      requestNotificationPermission();
-    }
-  }, [notificationsEnabled]);
-
-  const handleToggle = () => {
-    const enabled = !notificationsEnabled;
-    setNotificationsEnabled(enabled);
-    if (enabled) requestNotificationPermission();
-  };
+  // State for transfer points form
+  const [recipientId, setRecipientId] = useState("");
+  const [transferAmount, setTransferAmount] = useState("");
 
   const isOwner = currentuser?.result?._id === id;
+
+  const handleTransferSubmit = async (e) => {
+    e.preventDefault();
+    // Check if user has more than 10 points
+    if (currentprofile.points < 10) {
+      alert("You need at least 10 points to transfer.");
+      return;
+    }
+    if (!recipientId.trim()) {
+      alert("Please select a recipient.");
+      return;
+    }
+    if (!transferAmount || isNaN(transferAmount) || Number(transferAmount) <= 0) {
+      alert("Enter a valid points amount to transfer.");
+      return;
+    }
+    if (Number(transferAmount) > currentprofile.points) {
+      alert("You cannot transfer more points than you currently have.");
+      return;
+    }
+    try {
+      // Call the API to perform transfer
+      const response = await transferPoints(currentuser.result._id, recipientId, Number(transferAmount));
+      if (response.data.success) {
+        alert("Points transferred successfully!");
+        // Optionally update state or refetch user profile data here.
+      }
+    } catch (error) {
+      console.error("Error transferring points:", error);
+      alert("Failed to transfer points. Please try again.");
+    }
+  };
 
   return (
     <div className="home-container-1">
@@ -53,9 +77,12 @@ export default function Userprofile({ slidein }) {
               <div className="user-name">
                 <h1>{currentprofile?.name}</h1>
                 <p>
-                  Joined{' '}
+                  Joined{" "}
                   {currentprofile?.joinedon &&
                     new Date(currentprofile.joinedon).toLocaleDateString()}
+                </p>
+                <p style={{ marginTop: "10px", fontWeight: "bold" }}>
+                  Points: {currentprofile?.points || 0}
                 </p>
               </div>
             </div>
@@ -69,20 +96,21 @@ export default function Userprofile({ slidein }) {
                 >
                   <FontAwesomeIcon icon={faPen} /> Edit Profile
                 </button>
-
                 <button
                   className="notification-toggle"
-                  onClick={handleToggle}
+                  onClick={() => {
+                    const enabled = !notificationsEnabled;
+                    setNotificationsEnabled(enabled);
+                    if (enabled) requestNotificationPermission();
+                  }}
                   title={
                     notificationsEnabled
-                      ? 'Disable Notifications'
-                      : 'Enable Notifications'
+                      ? "Disable Notifications"
+                      : "Enable Notifications"
                   }
                 >
-                  <FontAwesomeIcon
-                    icon={notificationsEnabled ? faBell : faBellSlash}
-                  />{' '}
-                  {notificationsEnabled ? 'On' : 'Off'}
+                  <FontAwesomeIcon icon={notificationsEnabled ? faBell : faBellSlash} />{" "}
+                  {notificationsEnabled ? "On" : "Off"}
                 </button>
               </div>
             )}
@@ -93,8 +121,49 @@ export default function Userprofile({ slidein }) {
           ) : (
             <Profilebio currentprofile={currentprofile} />
           )}
+
+          {/* Transfer Points Section (Visible only to owner) */}
+          {isOwner && (
+            <div className="transfer-points-section" style={{ marginTop: "20px", padding: "10px", border: "1px solid #ddd", borderRadius: "5px" }}>
+              <h3>Transfer Points</h3>
+              <form onSubmit={handleTransferSubmit}>
+                <div>
+                  <label htmlFor="recipient">Select Recipient:</label>
+                  <select
+                    id="recipient"
+                    value={recipientId}
+                    onChange={(e) => setRecipientId(e.target.value)}
+                  >
+                    <option value="">--Select User--</option>
+                    {users
+                      .filter((u) => u._id !== currentuser.result._id)
+                      .map((user) => (
+                        <option key={user._id} value={user._id}>
+                          {user.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="amount">Points to Transfer:</label>
+                  <input
+                    type="number"
+                    id="amount"
+                    value={transferAmount}
+                    onChange={(e) => setTransferAmount(e.target.value)}
+                    min="1"
+                  />
+                </div>
+                <button type="submit" style={{ marginTop: "10px" }}>
+                  Transfer
+                </button>
+              </form>
+            </div>
+          )}
         </section>
       </div>
     </div>
   );
-}
+};
+
+export default Userprofile;

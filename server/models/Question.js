@@ -1,22 +1,25 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
-const Questionschema=mongoose.Schema({
-    questiontitle:{type:String,required:"Question must have a title"},
-    questionbody:{type:String,required:"Question must have a body"},
-    questiontags:{type:[String],required:"Question must have a tags"},
-    noofanswers:{type:Number,default:0},
-    upvote:{type:[String],default:[]},
-    downvote:{type:[String],default:[]},
-    userposted:{type:String,required:"Question must have an author"},
-    userid:{type:String},
-    askedon:{type:Date,default:Date.now},
-    answer:[
-        {
-            answerbody:String,
-            useranswered:String,
-            userid:String,
-            answeredon:{type:Date,default:Date.now}
-        },
-    ],
+const answerSchema = new mongoose.Schema({
+  answerbody: String,
+  useranswered: String,
+  userid: String,
+  answeredon: { type: Date, default: Date.now },
+  upvote: { type: [String], default: [] },     // ← Per‑answer upvotes
+  downvote: { type: [String], default: [] }    // ← Per‑answer downvotes
 });
-export default mongoose.model("Question",Questionschema)
+
+const questionSchema = new mongoose.Schema({
+  questiontitle: { type: String, required: true },
+  questionbody: { type: String, required: true },
+  questiontags: { type: [String], required: true },
+  noofanswers: { type: Number, default: 0 },
+  upvote: { type: [String], default: [] },
+  downvote: { type: [String], default: [] },
+  userposted: { type: String, required: true },
+  userid: String,
+  askedon: { type: Date, default: Date.now },
+  answer: [answerSchema]                       // ← Embedded answer documents
+});
+
+export default mongoose.model("Question", questionSchema);
